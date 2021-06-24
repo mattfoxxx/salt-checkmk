@@ -895,8 +895,6 @@ def call(method, target, cmk_site, cmk_user, cmk_secret, port=80, **kwargs):
     #init API
     api = WebApi('http://%s:%s/%s/check_mk/webapi.py' %(target, port, cmk_site), cmk_user, cmk_secret)
     
-    if type(method) == unicode:
-        method = str(method)
     if type(method) == str and method in dir(api):
         # do not use eval with untrusty strings
         method = eval('api.' + method)
@@ -905,7 +903,7 @@ def call(method, target, cmk_site, cmk_user, cmk_secret, port=80, **kwargs):
     filter_args = {}
     for k, v in kwargs.items():
         if not k.startswith('__pub_'):
-           filter_args.update({k.encode('utf-8') : v })
+            filter_args.update({k : v })
     LOG.debug("kwargs call:" + pprint.pformat(filter_args))
 
     LOG.debug(filter_args)
