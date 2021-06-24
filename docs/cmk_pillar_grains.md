@@ -18,6 +18,7 @@ cmk-master:
   port: 8080
   automation-user: automation
   automation-secret: <paste here the automation secret>
+  graindefaults: ['id', 'host', 'ipv4', 'ipv6', 'cmk-agent-ip']
   graintags: ['kernel', 'manufacturer', 'osfinger', 'virtual', 'productname']
 ```
 **Note**: Don't forget the replacement of the automation secret!
