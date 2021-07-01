@@ -487,7 +487,7 @@ def host_present(name, target, cmk_site, cmk_user, cmk_secret, discover=False, *
                                              'Params' : custom_attrs, }
                          }
     except Exception as e:
-        if re.match(r'Check_MK exception: Host .* already exists in the folder', str(e)) is not None:
+        if re.match(r'(Check_MK|Checkmk) exception: Host .* already exists in the folder', str(e)) is not None:
             ret['result'] = True
             ret['comment'] = "Host already exists"
         else:
