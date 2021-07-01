@@ -1,0 +1,30 @@
+#!jinja|yaml
+{#
+  grains primarily for use with checkmk. Checkmk does not support list types, only variable to value assignments
+#}
+
+mine_functions:
+  cmk-agent-ip:
+    - mine_function: grains.get
+    - cmk-agent-ip
+  kernel:
+    - mine_function: grains.get
+    - kernel
+  manufacturer:
+    - mine_function: grains.get
+    - manufacturer
+  osfinger:
+    - mine_function: grains.get
+    - osfinger
+  virtual:
+    - mine_function: grains.get
+    - virtual
+  productname:
+    - mine_function: grains.get
+    - productname
+  datacenter:
+    - mine_function: grains.get
+    - datacenter
+  role:
+    - mine_function: grains.get
+    - primary_role
