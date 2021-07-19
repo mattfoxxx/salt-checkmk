@@ -449,6 +449,7 @@ def host_present(name, target, cmk_site, cmk_user, cmk_secret, discover=False, *
     '''
     Ensure that the specified host is present at the cmk target system
     TODO:  and has the defined attributes
+    TODO:  support test=True
     '''
     ret = {
         'name' : name,
@@ -606,3 +607,135 @@ def hosttags_present(name, target, cmk_site, cmk_user, cmk_secret, port=80, aux_
             ret['result'] = True
 
     return ret
+
+# Agent section
+
+def deploy_update_agent(name, cmk_url, proto, site, automation_user, automation_secret):
+    """
+    Initially deploy the CheckMK Agent and the agent updater
+
+    This state calls out to the execution module ``check-mk-agent.install_agent_updater`` and ``check-mk-agent.register_update_agent``
+    in order to check the current system and perform any needed changes.
+
+    name
+        The thing to do something to
+    cmk_url
+        url for CheckMK host
+    proto
+        Protocol to use - http or https
+    site
+        name of the CheckMK site
+    automation_user
+        username of a user that is allowed to register a host for updates (e.g. automation)
+    automation_secret
+        secret for the user, not the password!
+    """
+    ret = {
+        "name": name,
+        "changes": {},
+        "result": False,
+        "comment": "",
+    }
+
+    # Start with basic error-checking. Do all the passed parameters make sense
+    # and agree with each-other?
+    if proto not in ['http', 'https']:
+        raise salt.exceptions.SaltInvocationError(
+            'Argument "proto" must be one of "http" or "https".'
+        )
+
+    # Check the current state of the system. Does anything need to change?
+    current_result, current_state = __salt__["check-mk-agent.current_updater_state"]()
+    LOG.debug(f"CHECKMK: {current_result}, {current_state}")
+
+    if current_result:
+        ret["result"] = True
+        ret["comment"] = f"System already in the correct state."
+        return ret
+
+    # The state of the system does need to be changed. Check if we're running
+    # in ``test=true`` mode.
+    if __opts__["test"] == True:
+        ret["comment"] = 'The state of "{0}" will be changed.'.format(name)
+        ret["changes"] = {
+            "old": current_state,
+            "new": "Updater would be installed and registered with CheckMK host.",
+        }
+
+        # Return ``None`` when running with ``test=true``.
+        ret["result"] = None
+
+        return ret
+
+    # Finally, make the actual change and return the result.
+    install_update_agent = __salt__["check-mk-agent.install_update_agent"](cmk_url, proto, site)
+    register_update_agent = __salt__["check-mk-agent.register_update_agent"](cmk_url, proto, site, automation_user, automation_secret)
+
+    new_result, new_state = __salt__["check-mk-agent.current_updater_state"]()
+
+    ret["result"] = new_result
+    ret["comment"] = 'The state of "{0}" was changed!'.format(name)
+
+    ret["changes"] = {
+        "old": current_state,
+        "new": new_state,
+    }
+
+    ret["result"] = True
+
+    return ret
+
+def install_checkmk_agent(name):
+    """
+    Install the CheckMK Agent from the agent bakery. This will only work if the host is already registered and a baked agent is available.
+
+    This state calls out to the execution module ``check-mk-agent.install_checkmk_agent``
+    in order to call cmk-update-agent.
+
+    This state takes no additional arguments other then the name
+    """
+    ret = {
+        "name": name,
+        "changes": {},
+        "result": False,
+        "comment": "",
+    }
+
+    # Check the current state of the system. Does anything need to change?
+    current_result, current_state = __salt__["check-mk-agent.current_agent_state"]()
+    LOG.debug(f"CHECKMK: {current_result}, {current_state}")
+
+    if current_result:
+        ret["result"] = True
+        ret["comment"] = f"System already in the correct state."
+        return ret
+
+    # The state of the system does need to be changed. Check if we're running
+    # in ``test=true`` mode.
+    if __opts__["test"] == True:
+        ret["comment"] = 'The state of "{0}" will be changed.'.format(name)
+        ret["changes"] = {
+            "old": current_state['agent_binary'],
+            "new": "Agent would be installed.",
+        }
+
+        # Return ``None`` when running with ``test=true``.
+        ret["result"] = None
+
+        return ret
+
+    # Finally, make the actual change and return the result.
+    new_result, new_state = __salt__["check-mk-agent.install_checkmk_agent"]()
+
+    ret["result"] = new_result
+    ret["comment"] = 'The state of "{0}" was changed!'.format(name)
+
+    ret["changes"] = {
+        "old": current_state['agent_binary'],
+        "new": new_state,
+    }
+
+    ret["result"] = True
+
+    return ret
+
