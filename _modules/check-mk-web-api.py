@@ -893,7 +893,10 @@ def call(method, target, cmk_site, cmk_user, cmk_secret, port=80, **kwargs):
     """
 
     #init API
-    api = WebApi('http://%s:%s/%s/check_mk/webapi.py' %(target, port, cmk_site), cmk_user, cmk_secret)
+    if port == 443:
+        api = WebApi('https://%s:%s/%s/check_mk/webapi.py' %(target, port, cmk_site), cmk_user, cmk_secret)
+    else:
+        api = WebApi('http://%s:%s/%s/check_mk/webapi.py' %(target, port, cmk_site), cmk_user, cmk_secret)
     
     if type(method) == str and method in dir(api):
         # do not use eval with untrusty strings
