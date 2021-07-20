@@ -11,7 +11,6 @@ Support for CheckMK
 
 from __future__ import absolute_import
 import os
-import check_mk_web_api
 import salt.utils
 import re
 import logging
