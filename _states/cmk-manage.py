@@ -445,7 +445,7 @@ def folder_absent(name, target, cmk_site, cmk_user, cmk_secret):
     ret['comment'] = comment
     return ret
 
-def host_present(name, target, cmk_site, cmk_user, cmk_secret, discover=False, **custom_attrs):
+def host_present(name, target, cmk_site, cmk_user, cmk_secret, discover=False, activate_changes=False, **custom_attrs):
     '''
     Ensure that the specified host is present at the cmk target system
     TODO:  and has the defined attributes
@@ -487,6 +487,17 @@ def host_present(name, target, cmk_site, cmk_user, cmk_secret, discover=False, *
         ret['changes'] = {  'Host added' : { 'Hostname' : name,
                                              'Params' : custom_attrs, }
                          }
+        if activate_changes:
+            kwargs_changes = { 'method' : 'activate_changes',
+                'target' : target,
+                'cmk_site' : cmk_site,
+                'cmk_user' : cmk_user,
+                'cmk_secret' : cmk_secret,
+                'allow_foreign_changes' : True,
+                }
+            ret_activation = __salt__['check-mk-web-api.call'](**kwargs_changes)
+            LOG.debug(f"CHECKMK: {ret_activation}")
+
     except Exception as e:
         if re.match(r'(Check_MK|Checkmk) exception: Host .* already exists in the folder', str(e)) is not None:
             ret['result'] = True
