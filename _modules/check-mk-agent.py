@@ -122,7 +122,7 @@ def install_update_agent(cmk_url, proto, site):
 
 def register_update_agent(cmk_url, proto, site, automation_user, automation_secret):
     try:
-        ret = __salt__['cmd.run'](f"{updater_local_destination} register -H {id} -t -s {cmk_url} -p {proto} -i {site} -U {automation_user} -S {automation_secret}", raise_err=True)
+        ret = __salt__['cmd.run'](f"{updater_local_destination} register -H {id} -s {cmk_url} -p {proto} -i {site} -U {automation_user} -S {automation_secret}", raise_err=True)
     except Exception as e:
         LOG.debug(f"CHECKMK: {e}")
         return (
