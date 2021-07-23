@@ -137,7 +137,7 @@ def install_checkmk_agent():
     success_pattern = "Successfully installed agent .*\."
     no_agent_available_pattern = "No agent available for us."
     try:
-        ret = __salt__['cmd.run'](f"{updater_local_destination} -G -f -t -v", raise_err=True)
+        ret = __salt__['cmd.run'](f"{updater_local_destination} -G -f -v", raise_err=True)
     except Exception as e:
         LOG.debug(f"CHECKMK: {e.with_traceback}")
         return (
